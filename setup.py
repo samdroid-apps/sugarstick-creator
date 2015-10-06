@@ -88,17 +88,17 @@ else:
         packages = ['liveusb'],
         scripts = ['liveusb-creator'],
         license = 'GNU General Public License (GPL)',
-        url = 'https://fedorahosted.org/liveusb-creator',
+        url = 'https://fedorahosted.org/sugarstick-creator',
         description = 'This tool installs a LiveCD ISO on to a USB stick',
-        long_description = 'The liveusb-creator is a cross-platform tool for easily installing live operating systems on to USB flash drives',
+        long_description = 'The sugarstick-creator is a cross-platform tool for easily installing live operating systems on to USB flash drives',
         platforms = ['Linux'],
         maintainer = 'Luke Macken',
         maintainer_email = 'lmacken@redhat.com',
-        data_files = [("/usr/share/applications",["data/liveusb-creator.desktop"]),
-                      ('/usr/share/pixmaps',["data/fedorausb.png"]),
-                      ('/usr/share/appdata',['data/liveusb-creator.appdata.xml']),
+        data_files = [("/usr/share/applications",["data/sugarstick-creator.desktop"]),
+                      ('/usr/share/pixmaps',["data/icon.svg"]),
+                      ('/usr/share/appdata',['data/sugarstick-creator.appdata.xml']),
                       ] + [(os.path.join(LOCALE_DIR, locale),
-                            [os.path.join('po', 'locale', locale, 'liveusb-creator.mo')])
+                            [os.path.join('po', 'locale', locale, 'sugarstick-creator.mo')])
                             for locale in locales]
         )
 

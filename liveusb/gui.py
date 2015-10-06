@@ -3,6 +3,7 @@
 # Copyright © 2008-2015  Red Hat, Inc. All rights reserved.
 # Copyright © 2008-2015  Luke Macken <lmacken@redhat.com>
 # Copyright © 2008  Kushal Das <kushal@fedoraproject.org>
+# Copyright © 2015  Sam Parkinson <sam@sam.today>
 #
 # This copyrighted material is made available to anyone wishing to use, modify,
 # copy, or redistribute it subject to the terms and conditions of the GNU
@@ -28,13 +29,14 @@ import os
 import sys
 import logging
 import urlparse
+import json
+from urllib2 import urlopen
 
-from time import sleep
+from time import sleep, time
 from datetime import datetime
 from PyQt4 import QtCore, QtGui
 
 from liveusb import LiveUSBCreator, LiveUSBError, LiveUSBInterface, _
-from liveusb.releases import releases, get_fedora_releases
 if sys.platform == 'win32':
     from liveusb.urlgrabber.grabber import URLGrabber, URLGrabError
     from liveusb.urlgrabber.progress import BaseMeter
@@ -51,6 +53,19 @@ except:
 MAX_FAT16 = 2047
 MAX_FAT32 = 3999
 MAX_EXT = 2097152
+
+IS_64BITS = sys.maxsize > 2**32
+ARCH = 'x86_64' if IS_64BITS else 'i686'
+DOWNLOAD = 'http://192.168.31.219:8000/Fedora-Live-SoaS-{}-23_Alpha-2.iso'.format
+
+LOGGER_URL = 'http://192.168.31.219:5000/log'
+if len(sys.argv) == 2:
+    UID = sys.argv[1]
+else:
+    UID = 'REPLACE_ME'
+    #from uuid import uuid4
+    #UID = 'C' + str(uuid4())
+START_T = time()
 
 
 class LiveUSBApp(QtGui.QApplication):
@@ -70,17 +85,11 @@ class LiveUSBApp(QtGui.QApplication):
 
 class ReleaseDownloader(QtCore.QThread):
 
-    def __init__(self, release, progress, proxies):
+    def __init__(self, progress, proxies):
         QtCore.QThread.__init__(self)
-        self.release = release
         self.progress = progress
         self.proxies = proxies
-        for rel in releases:
-            if rel['name'] == str(release):
-                self.url = rel['url']
-                break
-        else:
-            raise LiveUSBError(_("Unknown release: %s" % release))
+        self.url = DOWNLOAD(ARCH)
 
     def run(self):
         self.emit(QtCore.SIGNAL("status(PyQt_PyObject)"),
@@ -92,12 +101,40 @@ class ReleaseDownloader(QtCore.QThread):
             if os.path.isdir(os.path.join(home, folder)):
                 filename = os.path.join(home, folder, filename)
                 break
+
+        if os.path.isfile(filename):
+            self.emit(QtCore.SIGNAL("dlcomplete(PyQt_PyObject)"), filename)
+            return
+
+
         try:
             iso = grabber.urlgrab(self.url, reget='simple')
         except URLGrabError, e:
             self.emit(QtCore.SIGNAL("dlcomplete(PyQt_PyObject)"), e.strerror)
         else:
             self.emit(QtCore.SIGNAL("dlcomplete(PyQt_PyObject)"), iso)
+
+
+_LMS = []
+def log_message(message):
+    t = LoggingMessage(message)
+    _LMS.append(t)
+    t.start()
+
+class LoggingMessage(QtCore.QThread):
+
+    def __init__(self, message):
+        QtCore.QThread.__init__(self)
+        message['from'] = UID
+        message['timedelta'] = int(time() - START_T)
+        self._message = message
+
+    def run(self):
+        body = json.dumps({'uid': UID, 'dump': self._message})
+        print 'Sending %s to logger' % body
+
+        f = urlopen(LOGGER_URL, body)
+        print 'Url response:', f.read()
 
 
 class DownloadProgress(QtCore.QObject, BaseMeter):
@@ -193,18 +230,23 @@ class LiveUSBThread(QtCore.QThread):
 
             # If we're going to dd the image
             if self.parent.destructiveButton.isChecked():
+                log_message({'type': 'start', 'dd': True})
                 self.parent.progressBar.setRange(0, 0)
                 self.live.dd_image()
                 self.live.log.removeHandler(handler)
                 duration = str(datetime.now() - now).split('.')[0]
                 self.status(_("Complete! (%s)") % duration)
+                log_message({'type': 'finish', 'dd': True, 'duration': duration})
                 self.parent.progressBar.setRange(0, 1)
                 return
+
+            log_message({'type': 'start', 'dd': False})
 
             self.live.verify_filesystem()
             if not self.live.drive['uuid'] and not self.live.label:
                 self.status(_("Error: Cannot set the label or obtain "
                               "the UUID of your device.  Unable to continue."))
+                log_message({'type': 'failafterverifyfs'})
                 self.live.log.removeHandler(handler)
                 return
 
@@ -223,17 +265,20 @@ class LiveUSBThread(QtCore.QThread):
                         self.live.log.removeHandler(handler)
                         return
 
+
             # Setup the progress bar
             self.progress.set_data(size=self.live.totalsize,
                                    drive=self.live.drive['device'],
                                    freebytes=self.live.get_free_bytes)
             self.progress.start()
 
+            log_message({'type': 'startextraction', 'dd': False})
             self.live.extract_iso()
             self.live.create_persistent_overlay()
             self.live.update_configs()
             self.live.install_bootloader()
             self.live.bootable_partition()
+            log_message({'type': 'finishextraction', 'dd': False})
 
             if self.parent.opts.device_checksum:
                 self.live.calculate_device_checksum(progress=self)
@@ -247,12 +292,14 @@ class LiveUSBThread(QtCore.QThread):
             self.live.unmount_device()
 
             duration = str(datetime.now() - now).split('.')[0]
+            log_message({'type': 'finish', 'dd': False, 'duration': duration})
             self.status(_("Complete! (%s)" % duration))
 
         except Exception, e:
             self.status(e.args[0])
             self.status(_("LiveUSB creation failed!"))
             self.live.log.exception(e)
+            log_message({'type': 'fail', 'e': str(e)})
 
         self.live.log.removeHandler(handler)
         self.progress.terminate()
@@ -282,6 +329,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
     """ Our main dialog class """
 
     def __init__(self, opts, args):
+        log_message({'type': 'launch', 'platform': sys.platform, 'arch': ARCH}) 
         self.in_process = False
         QtGui.QMainWindow.__init__(self)
         LiveUSBInterface.__init__(self)
@@ -290,7 +338,6 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         self.args = args
         self.setupUi(self)
         self.live = LiveUSBCreator(opts=opts)
-        self.populate_releases()
         self.populate_devices()
         self.downloader = None
         self.progress_thread = ProgressThread()
@@ -323,6 +370,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
                 'Administrator. To do this, right click on the icon and open '
                 'the Properties. Under the Compatibility tab, check the "Run '
                 'this program as an administrator" box.'))
+        self.live.log.error('Args are %r' % sys.argv)
 
     def populate_devices(self, *args, **kw):
         if self.in_process:
@@ -348,28 +396,9 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
             self.textEdit.setPlainText(e.args[0])
             self.startButton.setEnabled(False)
 
-    def populate_releases(self):
-        for release in [release['name'] for release in releases]:
-            self.downloadCombo.addItem(release)
-
-    def refresh_releases(self):
-        self.live.log.info(_('Refreshing releases...'))
-        global releases
-        try:
-            releases = get_fedora_releases()
-            self.downloadCombo.clear()
-            for release in [release['name'] for release in releases]:
-                self.downloadCombo.addItem(release)
-            self.live.log.info(_('Releases updated!'))
-        except Exception, e:
-            self.live.log.error(_('Unable to fetch releases: %r') % e)
-
     def connect_slots(self):
         self.connect(self, QtCore.SIGNAL('triggered()'), self.terminate)
-        self.connect(self.isoBttn, QtCore.SIGNAL("clicked()"), self.selectfile)
         self.connect(self.startButton, QtCore.SIGNAL("clicked()"), self.begin)
-        self.connect(self.overlaySlider, QtCore.SIGNAL("valueChanged(int)"),
-                     self.overlay_value)
         self.connect(self.live_thread, QtCore.SIGNAL("status(PyQt_PyObject)"),
                      self.status)
         self.connect(self.live_thread, QtCore.SIGNAL("finished()"),
@@ -388,16 +417,9 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
                      self.maxprogress)
         self.connect(self.download_progress, QtCore.SIGNAL("progress(int)"),
                      self.progress)
-        self.connect(self.destructiveButton, QtCore.SIGNAL("toggled(bool)"),
-                     self.method_destructive_toggled)
-        self.connect(self.nonDestructiveButton, QtCore.SIGNAL("toggled(bool)"),
-                     self.method_nondestructive_toggled)
         if hasattr(self, 'refreshDevicesButton'):
             self.connect(self.refreshDevicesButton, QtCore.SIGNAL("clicked()"),
                          self.populate_devices)
-        if hasattr(self, 'refreshReleasesButton'):
-            self.connect(self.refreshReleasesButton, QtCore.SIGNAL("clicked()"),
-                         self.refresh_releases)
 
         # If we have access to HAL & DBus, intercept some useful signals
         if hasattr(self.live, 'udisks'):
@@ -406,24 +428,9 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
             self.live.udisks.connect_to_signal('DeviceRemoved',
                                             self.populate_devices)
 
-    @QtCore.pyqtSignature("QString")
-    def on_driveBox_currentIndexChanged(self, drive):
-        """ Change the maximum overlay size when each drive is selected.
-
-        This sets the maximum megabyte size of the persistent storage slider
-        to the number of free megabytes on the currently selected
-        "Target Device".  If the device is not mounted, or if it has more than
-        2gigs of free space, set the maximum to 2047mb, which is apparently
-        the largest file we can/should store on a vfat partition.
+    def get_max_freespace(self, drive=None):
         """
-        drive = unicode(drive)
-        if not drive:
-            return
-        self._refresh_overlay_slider(drive.split()[0])
-
-    def _refresh_overlay_slider(self, drive=None):
-        """
-        Reset the persistent storage slider based on the amount of free space
+        Returns the amount of free space
         on the device and the ISO size.
         """
         if not drive:
@@ -434,7 +441,6 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         device = self.live.drives[drive]
         freespace = device['free']
         device_size = device['size'] / 1024**2
-        current_overlay = self.overlaySlider.value()
 
         if device['fsversion'] == 'FAT32':
             self.live.log.debug(_('Partition is FAT32; Restricting overlay '
@@ -473,11 +479,8 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
 
         if freespace < 0:
             freespace = 0
-        if freespace < current_overlay:
-            self.overlaySlider.setValue(freespace)
-            self.live.overlay = self.overlaySlider.value()
 
-        self.overlaySlider.setMaximum(freespace)
+        return freespace
 
     def progress(self, value):
         self.progressBar.setValue(value)
@@ -493,19 +496,11 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
     def enable_widgets(self, enabled=True):
         self.startButton.setEnabled(enabled)
         self.driveBox.setEnabled(enabled)
-        self.overlaySlider.setEnabled(enabled)
-        self.isoBttn.setEnabled(enabled)
-        self.downloadCombo.setEnabled(enabled)
         self.destructiveButton.setEnabled(enabled)
         self.nonDestructiveButton.setEnabled(enabled)
         if hasattr(self, 'refreshDevicesButton'):
             self.refreshDevicesButton.setEnabled(enabled)
-        if hasattr(self, 'refreshReleasesButton'):
-            self.refreshReleasesButton.setEnabled(enabled)
         self.in_process = not enabled
-
-    def overlay_value(self, value):
-        self.overlayTitle.setTitle(_("Persistent Storage") + " (%d MB)" % value)
 
     def get_selected_drive(self):
         text = self.live._to_unicode(self.driveBox.currentText()).split()
@@ -518,7 +513,6 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         This method is called when the "Create LiveUSB" button is clicked.
         """
         self.enable_widgets(False)
-        self.live.overlay = self.overlaySlider.value()
         self.live.drive = self.get_selected_drive()
 
         # Unmount the device and check the MBR
@@ -526,7 +520,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
             if self.live.blank_mbr():
                 if not self.mbr_reset_confirmed:
                     self.status(_("The Master Boot Record on your device is blank. "
-                                  "Pressing 'Create LiveUSB' again will reset the "
+                                  "Pressing 'Create Create Sugar on a Stick' again will reset the "
                                   "MBR on this device."))
                     self.mbr_reset_confirmed = True
                     self.enable_widgets(True)
@@ -546,7 +540,6 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
 
             try:
                 self.live.mount_device()
-                self._refresh_overlay_slider() # To reflect the drives free space
             except LiveUSBError, e:
                 self.status(e.args[0])
                 self.enable_widgets(True)
@@ -558,12 +551,12 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
 
             if self.live.existing_liveos():
                 if not self.confirmed:
-                    self.status(_("Your device already contains a LiveOS.\nIf you "
+                    self.status(_("Your device already contains Sugar on a Stick.\nIf you "
                                   "continue, this will be overwritten."))
-                    if self.live.existing_overlay() and self.overlaySlider.value():
+                    if self.live.existing_overlay() and self.live.overlay > 0:
                         self.status(_("Warning: Creating a new persistent overlay "
                                       "will delete your existing one."))
-                    self.status(_("Press 'Create Live USB' again if you wish to "
+                    self.status(_("Press 'Create Create Sugar on a Stick' again if you wish to "
                                   "continue."))
                     self.confirmed = True
                     #self.live.unmount_device()
@@ -584,7 +577,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         else:
             # Require confirmation for destructive installs
             if not self.confirmed:
-                self.status(_("WARNING: You are about to perform a destructive install. This will destroy all data and partitions on your USB drive. Press 'Create Live USB' again to continue."))
+                self.status(_("WARNING: You are about to perform a destructive install. This will destroy all data and partitions on your USB drive. Press 'Create Sugar on a Stick' again to continue."))
                 self.confirmed = True
                 self.enable_widgets(True)
                 return
@@ -593,20 +586,18 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         self.live.log.removeHandler(self.handler)
 
         # If the user has selected an ISO, use it.  If not, download one.
-        if self.live.iso:
-            self.live_thread.start()
-        else:
-            self.downloader = ReleaseDownloader(
-                    self.downloadCombo.currentText(),
-                    progress=self.download_progress,
-                    proxies=self.live.get_proxies())
-            self.connect(self.downloader,
-                         QtCore.SIGNAL("dlcomplete(PyQt_PyObject)"),
-                         self.download_complete)
-            self.connect(self.downloader,
-                         QtCore.SIGNAL("status(PyQt_PyObject)"),
-                         self.status)
-            self.downloader.start()
+        log_message({'type': 'dlstart'})
+        self._start_dl_time = time()
+        self.downloader = ReleaseDownloader(
+                progress=self.download_progress,
+                proxies=self.live.get_proxies())
+        self.connect(self.downloader,
+                     QtCore.SIGNAL("dlcomplete(PyQt_PyObject)"),
+                     self.download_complete)
+        self.connect(self.downloader,
+                     QtCore.SIGNAL("status(PyQt_PyObject)"),
+                     self.status)
+        self.downloader.start()
 
     def download_complete(self, iso):
         """ Called by our ReleaseDownloader thread upon completion.
@@ -616,41 +607,23 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         it is assumed that the download failed and 'iso' should contain
         the error message.
         """
+        dl_time = time() - self._start_dl_time
         if os.path.exists(iso):
+            log_message({'type': 'dlfinish', 'timetaken': dl_time})
             self.status(_("Download complete!"))
-            self.live.iso = iso
+            self.live.set_iso(iso)
+            self.live.overlay = self.get_max_freespace()
             self.live_thread.start()
         else:
+            log_message({'type': 'dlfail'})
             self.status(_("Download failed: " + iso))
             self.status(_("You can try again to resume your download"))
             self.enable_widgets(True)
-
-    def selectfile(self, isofile=None):
-        if not isofile:
-            isofile = QtGui.QFileDialog.getOpenFileName(self,
-                         _("Select Live ISO"), ".", "ISO (*.iso)" )
-        if isofile:
-            try:
-                self.live.set_iso(isofile)
-            except Exception, e:
-                self.live.log.error(e.args[0])
-                self.status(_("Unable to encode the filename of your livecd.  "
-                              "You may have better luck if you move your ISO "
-                              "to the root of your drive (ie: C:\)"))
-
-            self.live.log.info('%s ' % os.path.basename(self.live.iso) +
-                               _("selected"))
-            self._refresh_overlay_slider()
-            self.downloadGroup.setEnabled(False)
 
     def terminate(self):
         """ Terminate any processes that we have spawned """
         self.live.terminate()
 
-    def method_destructive_toggled(self, enabled):
-        if enabled:
-            self.overlayTitle.setEnabled(False)
-
-    def method_nondestructive_toggled(self, enabled):
-        if enabled:
-            self.overlayTitle.setEnabled(True)
+    def closeEvent(self, event):
+        log_message({'type': 'close'})
+        event.accept()

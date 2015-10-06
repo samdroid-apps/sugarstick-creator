@@ -14,8 +14,8 @@ rpm: dist
 
 gui:
 	pyrcc4 data/resources.qrc -o liveusb/resources_rc.py
-	pyuic4 data/liveusb-creator.ui -o liveusb/windows_dialog.py
-	pyuic4 data/liveusb-creator-linux.ui -o liveusb/linux_dialog.py
+	pyuic4 data/liveusb-creator.ui -o liveusb/linux_dialog.py
+	cp liveusb/linux_dialog.py liveusb/windows_dialog.py
 
 pyflakes:
 	pyflakes liveusb/*.py
@@ -45,6 +45,6 @@ everything:
 	python setup.py  sdist --format=bztar
 	rm -f ~/rpmbuild/RPMS/noarch/liveusb-creator*.rpm
 	make clean rpm
-	sudo rpm -e liveusb-creator
+	# sudo rpm -e liveusb-creator
 	sudo rpm -Uvh ~/rpmbuild/RPMS/noarch/liveusb-creator*.rpm
 	sudo /usr/bin/liveusb-creator -v

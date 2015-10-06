@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2014 Richard Hughes <richard@hughsie.com> -->
+<!-- Copyright 2015 Sam Parkinson <sam@sam.today> -->
 
 <application>
-  <id type="desktop">liveusb-creator.desktop</id>
+  <id type="desktop">sugarstick-creator.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <description>
     <p>
-      The LiveUSB Creator is a tool for easily installing live operating systems
-      on to USB flash drives.
+      Sugar Stick Creator is a simple tool for installing Sugar on a
+      Stick to USB Sticks.
     </p>
     <p>
-      Live USB Creator detects all of your removable devices and supports a
+      Sugar Stick Creator detects all of your removable devices and supports a
       completely non-destructive install.
       There is no need to deal with formatting or partitioning your USB key.
-      You can also allocate extra space on your USB stick, allowing you to save
-      files and make modifications to your live operating system that will
-      persist after you reboot.
-      This essentially lets you carry your own personalized Fedora with you at
-      all times.
+      Extra space is automatically allocated to saving your Journal and
+      Activities to your USB Stick.
+    </p>
+    <p>
+      This tool is based off Fedora's Live USB Creator.
     </p>
   </description>
   <url type="homepage">https://fedorahosted.org/liveusb-creator/</url>
   <screenshots>
-    <screenshot type="default">https://lmacken.fedorapeople.org/img/liveusb-creator-3.13.png</screenshot>
+    <screenshot type="default">https://people.sugarlabs.org/sam/SugarStickCreator1.png</screenshot>
   </screenshots>
-  <updatecontact>lmacken@redhat.com</updatecontact>
+  <updatecontact>sam@sugarlabs.org</updatecontact>
 </application>

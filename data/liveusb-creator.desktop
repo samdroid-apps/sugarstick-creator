@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
-Name=Fedora LiveUSB Creator
-Comment=Write Fedora images to a USB device
-Icon=fedorausb
+Name=Sugar Stick Creator
+Comment=Install Sugar on a Stick on your USB Drive
+Icon=sugarstick-creator
 Exec=liveusb-creator_polkit
 Terminal=false
 Categories=System;

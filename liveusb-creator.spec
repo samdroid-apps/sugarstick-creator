@@ -9,7 +9,7 @@
 Name:           liveusb-creator
 Version:        3.14.2
 Release:        1%{?dist}
-Summary:        A liveusb creator
+Summary:        Install Sugar on a Stick to your USB Drive
 
 Group:          Applications/System
 License:        GPLv2
@@ -35,7 +35,7 @@ Requires:       polkit
 Requires:       polkit-gnome
 
 %description
-A liveusb creator from Live Fedora images
+A tool to install Sugar on a Stick to USB drives
 
 %prep
 %setup -q
@@ -66,8 +66,8 @@ desktop-file-install \
 %if %{with_desktop_vendor_tag}
   --vendor fedora \
 %endif
---dir=%{buildroot}%{_datadir}/applications           \
-%{buildroot}/%{_datadir}/applications/liveusb-creator.desktop
+  --dir=%{buildroot}%{_datadir}/applications \
+   %{buildroot}/%{_datadir}/applications/liveusb-creator.desktop
 %if %{with_desktop_vendor_tag}
 rm -rf %{buildroot}/%{_datadir}/applications/liveusb-creator.desktop
 %endif
@@ -84,7 +84,6 @@ rm -rf %{buildroot}
 %{_bindir}/*
 %{_sbindir}/*
 %{_datadir}/applications/*liveusb-creator.desktop
-%{_datadir}/pixmaps/fedorausb.png
 %{_datadir}/appdata/%{name}.appdata.xml
 #%{_datadir}/locale/*/LC_MESSAGES/liveusb-creator.mo
 %{_datadir}/polkit-1/actions/org.fedoraproject.pkexec.run-liveusb-creator.policy

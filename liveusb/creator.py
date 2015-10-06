@@ -259,8 +259,7 @@ class LiveUSBCreator(object):
 
     def create_persistent_overlay(self):
         if self.overlay:
-            self.log.info(_("Creating") + " %sMB " % self.overlay +
-                          _("persistent overlay"))
+            self.log.info(_("Creating %sMB persistent overlay (this could take some time)")  % self.overlay)
             if self.fstype == 'vfat':
                 # vfat apparently can't handle sparse files
                 self.popen('dd if=/dev/zero of="%s" count=%d bs=1M'
@@ -720,13 +719,13 @@ class LinuxLiveUSBCreator(LiveUSBCreator):
 
     def extract_iso(self):
         """ Extract self.iso to self.dest """
-        self.log.info(_("Extracting live image to USB device..."))
+        self.log.info(_("Extracting Sugar to USB device... (this could take more than 10 minutes)"))
         tmpdir = tempfile.mkdtemp()
         self.popen('mount -o loop,ro "%s" %s' % (self.iso, tmpdir))
         tmpliveos = os.path.join(tmpdir, 'LiveOS')
         try:
             if not os.path.isdir(tmpliveos):
-                raise LiveUSBError(_("Unable to find LiveOS on ISO"))
+                raise LiveUSBError(_("Unable to find Sugar on a Stick on ISO"))
             liveos = os.path.join(self.dest, 'LiveOS')
             if not os.path.exists(liveos):
                 os.mkdir(liveos)
@@ -1086,7 +1085,7 @@ class WindowsLiveUSBCreator(LiveUSBCreator):
 
     def extract_iso(self):
         """ Extract our ISO with 7-zip directly to the USB key """
-        self.log.info(_("Extracting live image to USB device..."))
+        self.log.info(_("Extracting Sugar on a Stick to USB device... (this could take more than 10 minutes)"))
         start = datetime.now()
         self.popen('7z x "%s" -x![BOOT] -y -o%s' % (
                    self.iso, self.drive['device']))

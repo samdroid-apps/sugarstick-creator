@@ -19,19 +19,22 @@
 
 import os
 import sys
-import gettext
+# import gettext
 import locale
 
-if sys.platform == 'win32':
-    import gettext_windows
-    gettext_windows.setup_env()
+# if sys.platform == 'win32':
+#     import gettext_windows
+#     gettext_windows.setup_env()
 
-if os.path.exists('locale'):
-    translation = gettext.translation('liveusb-creator', 'locale', fallback=True)
-else:
-    translation = gettext.translation('liveusb-creator', '/usr/share/locale',
-                                      fallback=True)
-_ = translation.ugettext
+# if os.path.exists('locale'):
+#     translation = gettext.translation('liveusb-creator', 'locale', fallback=True)
+# else:
+#     translation = gettext.translation('liveusb-creator', '/usr/share/locale',
+#                                       fallback=True)
+# _ = translation.ugettext
+
+# FIXME:  Do translation stuff
+_ = lambda text: text
 
 def utf8_gettext(string):
     " Translate string, converting it to a UTF-8 encoded bytestring "
