@@ -31,15 +31,16 @@ import logging
 import urlparse
 import json
 from urllib2 import urlopen
+import traceback
 
 from time import sleep, time
 from datetime import datetime
 from PyQt4 import QtCore, QtGui
 
-from liveusb import LiveUSBCreator, LiveUSBError, LiveUSBInterface, _
+from sugarstick import LiveUSBCreator, LiveUSBError, LiveUSBInterface, _
 if sys.platform == 'win32':
-    from liveusb.urlgrabber.grabber import URLGrabber, URLGrabError
-    from liveusb.urlgrabber.progress import BaseMeter
+    from sugarstick.urlgrabber.grabber import URLGrabber, URLGrabError
+    from sugarstick.urlgrabber.progress import BaseMeter
 else:
     from urlgrabber.grabber import URLGrabber, URLGrabError
     from urlgrabber.progress import BaseMeter
@@ -54,17 +55,28 @@ MAX_FAT16 = 2047
 MAX_FAT32 = 3999
 MAX_EXT = 2097152
 
-IS_64BITS = sys.maxsize > 2**32
+if sys.platform == 'win32':
+    IS_64BITS = True  # FIXME
+else:
+    IS_64BITS = sys.maxsize > 2**32
 ARCH = 'x86_64' if IS_64BITS else 'i686'
-DOWNLOAD = 'http://192.168.31.219:8000/Fedora-Live-SoaS-{}-23_Alpha-2.iso'.format
+if IS_64BITS:
+    DOWNLOAD = 'https://download.fedoraproject.org/pub/fedora/linux/releases/test/23_Beta/Live/x86_64/Fedora-Live-SoaS-x86_64-23_Beta-1.iso'
+else:
+    DOWNLOAD = 'https://download.fedoraproject.org/pub/fedora/linux/releases/test/23_Beta/Live/i386/Fedora-Live-SoaS-i686-23_Beta-1.iso'
 
-LOGGER_URL = 'http://192.168.31.219:5000/log'
+LOGGER_URL = 'http://sugarstick-creator.sam.today/log'
 if len(sys.argv) == 2:
     UID = sys.argv[1]
 else:
-    UID = 'REPLACE_ME'
-    #from uuid import uuid4
-    #UID = 'C' + str(uuid4())
+    UID = None
+    for i in os.listdir(os.getcwd()):
+        if i[0] == 'E' or i[0] == 'S':
+            UID = i.split('.')[0]
+            break
+    if UID is None:
+        from uuid import uuid4
+        UID = 'C' + str(uuid4())
 START_T = time()
 
 
@@ -89,7 +101,7 @@ class ReleaseDownloader(QtCore.QThread):
         QtCore.QThread.__init__(self)
         self.progress = progress
         self.proxies = proxies
-        self.url = DOWNLOAD(ARCH)
+        self.url = DOWNLOAD
 
     def run(self):
         self.emit(QtCore.SIGNAL("status(PyQt_PyObject)"),
@@ -297,9 +309,10 @@ class LiveUSBThread(QtCore.QThread):
 
         except Exception, e:
             self.status(e.args[0])
+            tb = traceback.format_tb(e)
             self.status(_("LiveUSB creation failed!"))
-            self.live.log.exception(e)
-            log_message({'type': 'fail', 'e': str(e)})
+            self.live.log.exception(tb)
+            log_message({'type': 'fail', 'tb': tb})
 
         self.live.log.removeHandler(handler)
         self.progress.terminate()
@@ -349,10 +362,12 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
         self.confirmed = False
         self.mbr_reset_confirmed = False
 
-        if self.opts.destructive:
+        if sys.platform == 'win32':
+            self.destructiveButton.setEnabled(False)  # FIXME
+        elif self.opts.destructive:
             self.destructiveButton.setChecked(True)
 
-        # Intercept all liveusb INFO log messages, and display them in the gui
+        # Intercept all sugarstick INFO log messages, and display them in the gui
         self.handler = LiveUSBLogHandler(lambda x: self.textEdit.append(x))
         self.live.log.addHandler(self.handler)
         if not self.opts.verbose:
@@ -496,7 +511,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
     def enable_widgets(self, enabled=True):
         self.startButton.setEnabled(enabled)
         self.driveBox.setEnabled(enabled)
-        self.destructiveButton.setEnabled(enabled)
+        self.destructiveButton.setEnabled(enabled and sys.platform != 'win32')  # FIXME
         self.nonDestructiveButton.setEnabled(enabled)
         if hasattr(self, 'refreshDevicesButton'):
             self.refreshDevicesButton.setEnabled(enabled)
@@ -508,7 +523,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
             return text[0]
 
     def begin(self):
-        """ Begin the liveusb creation process.
+        """ Begin the sugarstick creation process.
 
         This method is called when the "Create LiveUSB" button is clicked.
         """
@@ -536,7 +551,7 @@ class LiveUSBWindow(QtGui.QMainWindow, LiveUSBInterface):
                     self.live.log.warn(_("Warning: The Master Boot Record on your device "
                                   "does not match your system's syslinux MBR.  If you "
                                   "have trouble booting this stick, try running the "
-                                  "liveusb-creator with the --reset-mbr option."))
+                                  "sugarstick-creator with the --reset-mbr option."))
 
             try:
                 self.live.mount_device()

@@ -6,15 +6,15 @@
 %global with_desktop_vendor_tag 0
 %endif
 
-Name:           liveusb-creator
+Name:           sugarstick-creator
 Version:        3.14.2
 Release:        1%{?dist}
 Summary:        Install Sugar on a Stick to your USB Drive
 
 Group:          Applications/System
 License:        GPLv2
-URL:            https://fedorahosted.org/liveusb-creator
-Source0:        https://fedorahosted.org/releases/l/i/liveusb-creator/%{name}-%{version}.tar.bz2
+URL:            https://fedorahosted.org/sugarstick-creator
+Source0:        https://fedorahosted.org/releases/l/i/sugarstick-creator/%{name}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
@@ -42,12 +42,10 @@ A tool to install Sugar on a Stick to USB drives
 
 %build
 %{__python} setup.py build
-make mo
 
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-%{__rm} -r liveusb/urlgrabber
 
 # program needs root, move to sbin
 mkdir -p %{buildroot}%{_sbindir}
@@ -56,10 +54,10 @@ mv %{buildroot}%{_bindir}/%{name} %{buildroot}%{_sbindir}/%{name}
 # polkit stuff
 mkdir -p %{buildroot}%{_datadir}/polkit-1/actions
 %{__install} -p -m644 \
-	org.fedoraproject.pkexec.run-liveusb-creator.policy \
+	org.fedoraproject.pkexec.run-sugarstick-creator.policy \
 	%{buildroot}%{_datadir}/polkit-1/actions/
 %{__install} -p -m755 \
-	liveusb-creator_polkit \
+	sugarstick-creator_polkit \
 	%{buildroot}%{_bindir}/
 
 desktop-file-install \
@@ -67,9 +65,9 @@ desktop-file-install \
   --vendor fedora \
 %endif
   --dir=%{buildroot}%{_datadir}/applications \
-   %{buildroot}/%{_datadir}/applications/liveusb-creator.desktop
+   %{buildroot}/%{_datadir}/applications/sugarstick-creator.desktop
 %if %{with_desktop_vendor_tag}
-rm -rf %{buildroot}/%{_datadir}/applications/liveusb-creator.desktop
+rm -rf %{buildroot}/%{_datadir}/applications/sugarstick-creator.desktop
 %endif
 
 %find_lang %{name}
@@ -83,10 +81,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/*
 %{_bindir}/*
 %{_sbindir}/*
-%{_datadir}/applications/*liveusb-creator.desktop
+%{_datadir}/applications/*sugarstick-creator.desktop
 %{_datadir}/appdata/%{name}.appdata.xml
-#%{_datadir}/locale/*/LC_MESSAGES/liveusb-creator.mo
-%{_datadir}/polkit-1/actions/org.fedoraproject.pkexec.run-liveusb-creator.policy
+%{_datadir}/polkit-1/actions/org.fedoraproject.pkexec.run-sugarstick-creator.policy
 
 %changelog
 * Mon May 25 2015 Luke Macken <lmacken@redhat.com> - 3.14.0-1

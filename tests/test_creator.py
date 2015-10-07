@@ -11,12 +11,12 @@ class LiveUSBCreatorOptions(object):
 class TestLiveUSBCreator:
 
     def _get_creator(self):
-        from liveusb import LiveUSBCreator
+        from sugarstick import LiveUSBCreator
         opts = LiveUSBCreatorOptions()
         return LiveUSBCreator(opts)
 
     def test_creation(self):
-        from liveusb import LiveUSBCreator
+        from sugarstick import LiveUSBCreator
         live = self._get_creator()
         assert live and isinstance(live, LiveUSBCreator)
 
@@ -29,7 +29,7 @@ class TestLiveUSBCreator:
                 assert key in live.drives[drive]
 
     def test_releases(self):
-        from liveusb.releases import releases
+        from sugarstick.releases import releases
         assert releases and len(releases)
         for release in releases:
             assert release['name']

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'data/liveusb-creator.ui'
+# Form implementation generated from reading ui file 'data/sugarstick-creator.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -59,7 +59,7 @@ class Ui_MainWindow(object):
         self.label.setSizePolicy(sizePolicy)
         self.label.setStyleSheet(_fromUtf8(""))
         self.label.setText(_fromUtf8(""))
-        self.label.setPixmap(QtGui.QPixmap(_fromUtf8(":/liveusb-header.png")))
+        self.label.setPixmap(QtGui.QPixmap(_fromUtf8(":/sugarstick-header.png")))
         self.label.setScaledContents(False)
         self.label.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.label.setObjectName(_fromUtf8("label"))

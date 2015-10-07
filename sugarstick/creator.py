@@ -40,8 +40,8 @@ from datetime import datetime
 from pprint import pformat
 from stat import ST_SIZE
 
-from liveusb.releases import releases
-from liveusb import _
+from sugarstick.releases import releases
+from sugarstick import _
 
 
 class LiveUSBError(Exception):
@@ -136,7 +136,7 @@ class LiveUSBCreator(object):
         does this by installing a /boot/olpc.fth open firmware configuration
         file that enables booting off of USB and SD cards on the XO.
         """
-        from liveusb.olpc import ofw_config
+        from sugarstick.olpc import ofw_config
         self.log.info(_('Setting up OLPC boot file...'))
         args = self.get_kernel_args()
         if not os.path.exists(os.path.join(self.dest, 'boot')):
@@ -358,7 +358,7 @@ class LiveUSBCreator(object):
     def write_log(self):
         """ Write out our subprocess stdout/stderr to a log file """
         tmpdir = os.getenv('TEMP', '/tmp')
-        filename = os.path.join(tmpdir, 'liveusb-creator.log')
+        filename = os.path.join(tmpdir, 'sugarstick-creator.log')
         out = file(filename, 'a')
         out.write(self.output.getvalue())
         out.close()
@@ -441,7 +441,7 @@ class LiveUSBCreator(object):
 
     def dd_image(self):
         self.log.info(_('Overwriting device with live image'))
-        parent = self.drive['parent']
+        parent = self.drive.get('parent')
         if parent:
             drive = parent
         else:
@@ -1194,7 +1194,7 @@ class WindowsLiveUSBCreator(LiveUSBCreator):
         else:
             raise LiveUSBError(_("Cannot find") + ' %s.  ' % (cmd[0]) +
                                _("Make sure to extract the entire "
-                                 "liveusb-creator zip file before "
+                                 "sugarstick-creator zip file before "
                                  "running this program."))
         return LiveUSBCreator.popen(self, ' '.join([tool] + cmd[1:]),
                                     creationflags=win32process.CREATE_NO_WINDOW,

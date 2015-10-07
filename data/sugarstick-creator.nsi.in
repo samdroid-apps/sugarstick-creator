@@ -2,7 +2,7 @@
 ;LiveUSB Creator NSIS script
 
 Name "LiveUSB Creator 3.11.8"
-OutFile "liveusb-creator-3.11.8-setup.exe"
+OutFile "sugarstick-creator-3.11.8-setup.exe"
 
 SetCompressor lzma
 
@@ -15,7 +15,7 @@ SetCompressor lzma
 ;	Interface Configuration
 
   !define MUI_HEADERIMAGE
-  !define MUI_HEADERIMAGE_BITMAP "${LC_NSIS_INCLUDE_PATH}\liveusb-creator-nsi.bmp"
+  !define MUI_HEADERIMAGE_BITMAP "${LC_NSIS_INCLUDE_PATH}\sugarstick-creator-nsi.bmp"
   !define MUI_ABORTWARNING
 
 ;--------------------------------
@@ -37,7 +37,7 @@ InstallDirRegKey HKEY_LOCAL_MACHINE "SOFTWARE\LiveUSB Creator" ""
 
 DirText $(s_InstallHere)
 
-Icon liveusb-creator.ico
+Icon sugarstick-creator.ico
 
 Section "Dummy Section" SecDummy
 
@@ -45,7 +45,7 @@ Section "Dummy Section" SecDummy
 	SetOverwrite on
 
 	SetOutPath "$INSTDIR"
-	File liveusb-creator.exe
+	File sugarstick-creator.exe
 	File LICENSE.txt
 	File README.txt
 	File MSVCP90.dll
@@ -64,12 +64,12 @@ Section "Dummy Section" SecDummy
 	; Create shortcut.
 	SetOutPath -
 	CreateDirectory "$SMPROGRAMS\LiveUSB Creator"
-	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\LiveUSB Creator.lnk" "$INSTDIR\liveusb-creator.exe"
+	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\LiveUSB Creator.lnk" "$INSTDIR\sugarstick-creator.exe"
 	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\Uninstall LiveUSB Creator.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
 	; Optionally start program.
 	MessageBox MB_YESNO|MB_ICONQUESTION $(s_RunNow) IDNO SkipRunProgram
-	Exec "$INSTDIR\liveusb-creator.exe"
+	Exec "$INSTDIR\sugarstick-creator.exe"
 SkipRunProgram:
 
 	; Create uninstaller.
@@ -96,7 +96,7 @@ Section Uninstall
 	DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\LiveUSB Creator"
 
 	; Delete files.
-	Delete "$INSTDIR\liveusb-creator.exe"
+	Delete "$INSTDIR\sugarstick-creator.exe"
 	Delete "$INSTDIR\LICENSE.txt"
 	Delete "$INSTDIR\README.txt"
 	Delete "$INSTDIR\MSVCP90.DLL"
@@ -110,7 +110,7 @@ Section Uninstall
 	Delete "$INSTDIR\tools\dd.exe"
 	Delete "$INSTDIR\tools\syslinux.exe"
 
-	Delete "$INSTDIR\liveusb-creator.exe.log"
+	Delete "$INSTDIR\sugarstick-creator.exe.log"
 
 	; Remove the installation directories.
 	RMDir "$INSTDIR\tools"

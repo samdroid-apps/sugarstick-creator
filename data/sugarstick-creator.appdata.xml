@@ -21,7 +21,7 @@
       This tool is based off Fedora's Live USB Creator.
     </p>
   </description>
-  <url type="homepage">https://fedorahosted.org/liveusb-creator/</url>
+  <url type="homepage">https://fedorahosted.org/sugarstick-creator/</url>
   <screenshots>
     <screenshot type="default">https://people.sugarlabs.org/sam/SugarStickCreator1.png</screenshot>
   </screenshots>

@@ -4,15 +4,15 @@
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
 
-  <action id="org.fedoraproject.pkexec.run-liveusb-creator">
-    <description>Run the liveusb-creator program</description>
-    <message>Authentication is required to run the liveusb-creator</message>
+  <action id="org.fedoraproject.pkexec.run-sugarstick-creator">
+    <description>Run the sugarstick-creator program</description>
+    <message>Authentication is required to run the sugarstick-creator</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/sbin/liveusb-creator</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/sbin/sugarstick-creator</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 

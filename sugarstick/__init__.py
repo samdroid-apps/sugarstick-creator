@@ -27,9 +27,9 @@ import locale
 #     gettext_windows.setup_env()
 
 # if os.path.exists('locale'):
-#     translation = gettext.translation('liveusb-creator', 'locale', fallback=True)
+#     translation = gettext.translation('sugarstick-creator', 'locale', fallback=True)
 # else:
-#     translation = gettext.translation('liveusb-creator', '/usr/share/locale',
+#     translation = gettext.translation('sugarstick-creator', '/usr/share/locale',
 #                                       fallback=True)
 # _ = translation.ugettext
 
@@ -40,13 +40,13 @@ def utf8_gettext(string):
     " Translate string, converting it to a UTF-8 encoded bytestring "
     return _(string).encode('utf8')
 
-from liveusb.creator import LiveUSBError
+from sugarstick.creator import LiveUSBError
 
 if sys.platform == "win32":
-    from liveusb.creator import WindowsLiveUSBCreator as LiveUSBCreator
-    from liveusb.windows_dialog import Ui_MainWindow as LiveUSBInterface
+    from sugarstick.creator import WindowsLiveUSBCreator as LiveUSBCreator
+    from sugarstick.windows_dialog import Ui_MainWindow as LiveUSBInterface
 else:
-    from liveusb.creator import LinuxLiveUSBCreator as LiveUSBCreator
-    from liveusb.linux_dialog import Ui_MainWindow as LiveUSBInterface
+    from sugarstick.creator import LinuxLiveUSBCreator as LiveUSBCreator
+    from sugarstick.linux_dialog import Ui_MainWindow as LiveUSBInterface
 
 __all__ = ("LiveUSBCreator", "LiveUSBError", "LiveUSBWindow", "_", "utf8_gettext")

@@ -1,28 +1,40 @@
 ===============
-liveusb-creator
+sugarstick-creator
 ===============
 
 A cross-platform tool for easily installing live operating systems on to USB
 flash drives.
 
+Basic fork of Fedora live usb creator
+
+TODO
+----
+
+* Detect x86_64 Windows machnes (python is always i686)
+* dd mode on windows
+* show the icon
+* Fix RPM
+* Polkit
+* Much much more
+
 Using
 -----
-See the wiki for instructions on how to use the liveusb-creator:
+See the wiki for instructions on how to use the sugarstick-creator:
 
-    https://fedorahosted.org/liveusb-creator
+    https://fedorahosted.org/sugarstick-creator
 
 Developing
 ----------
 See the Developers Guide on the wiki for details,
 
-        https://fedorahosted.org/liveusb-creator/wiki/Development
+        https://fedorahosted.org/sugarstick-creator/wiki/Development
 
 License
 -------
 
-The liveusb-creator is licensed under the GPLv2.
+The sugarstick-creator is licensed under the GPLv2.
 
-The liveusb-creator logo is licensed under the `CC-BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>`_ license.
+The sugarstick-creator logo is licensed under the `CC-BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>`_ license.
 
 This tool is distributed with the following open source software::
 

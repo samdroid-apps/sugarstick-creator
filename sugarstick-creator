@@ -21,7 +21,7 @@
 import os
 import sys
 
-from liveusb import _
+from sugarstick import _
 
 __version__ = '3.14.2'
 
@@ -78,7 +78,7 @@ def main():
             sys.exit(1)
 
     if opts.console:
-        from liveusb import LiveUSBCreator
+        from sugarstick import LiveUSBCreator
         try:
             live = LiveUSBCreator(opts)
             live.detect_removable_drives()
@@ -91,7 +91,7 @@ def main():
         x = raw_input("\nDone!  Press any key to exit")
     else:
         ## Start our graphical interface
-        from liveusb.gui import LiveUSBApp
+        from sugarstick.gui import LiveUSBApp
         try:
             LiveUSBApp(opts, sys.argv)
         except KeyboardInterrupt:

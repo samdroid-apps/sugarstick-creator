@@ -40,20 +40,20 @@ if sys.platform == 'win32':
     LOCALE_DIR = 'locale'
 
     setup(
-        name = 'liveusb-creator',
+        name = 'sugarstick-creator',
         version = VERSION,
-        packages = ['liveusb', 'liveusb/urlgrabber'],
-        scripts = ['liveusb-creator'],
+        packages = ['sugarstick', 'sugarstick/urlgrabber'],
+        scripts = ['sugarstick-creator'],
         license = 'GNU General Public License (GPL)',
-        url = 'https://fedorahosted.org/liveusb-creator',
+        url = 'https://fedorahosted.org/sugarstick-creator',
         description = 'This tool installs a LiveCD ISO on to a USB stick',
-        long_description = 'The liveusb-creator is a cross-platform tool for easily installing live operating systems on to USB flash drives',
+        long_description = 'The sugarstick-creator is a cross-platform tool for easily installing live operating systems on to USB flash drives',
         platforms = ['Windows'],
         maintainer = 'Luke Macken',
         maintainer_email = 'lmacken@redhat.com',
         windows = [
             {
-                "script" : "liveusb-creator",
+                "script" : "sugarstick-creator",
                 "icon_resources" : [(0, "data/fedora.ico")],
             }
         ],
@@ -78,15 +78,15 @@ if sys.platform == 'win32':
                 "tools/7-Zip-License.txt",
             ],)
           ] + [(os.path.join(LOCALE_DIR, locale),
-                [os.path.join('po', 'locale', locale, 'liveusb-creator.mo')])
+                [os.path.join('po', 'locale', locale, 'sugarstick-creator.mo')])
                 for locale in locales]
     )
 else:
     setup(
-        name = 'liveusb-creator',
+        name = 'sugarstick-creator',
         version = VERSION,
-        packages = ['liveusb'],
-        scripts = ['liveusb-creator'],
+        packages = ['sugarstick'],
+        scripts = ['sugarstick-creator'],
         license = 'GNU General Public License (GPL)',
         url = 'https://fedorahosted.org/sugarstick-creator',
         description = 'This tool installs a LiveCD ISO on to a USB stick',

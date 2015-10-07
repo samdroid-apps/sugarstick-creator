@@ -1,5 +1,5 @@
 Name "LiveUSB Creator 3.11.8"
-OutFile "liveusb-creator-3.11.8-setup.exe"
+OutFile "sugarstick-creator-3.11.8-setup.exe"
 
 !include "MUI2.nsh"
 XPStyle on
@@ -14,14 +14,14 @@ InstallDirRegKey HKEY_LOCAL_MACHINE "SOFTWARE\LiveUSB Creator" ""
 
 DirText "Select the directory to install LiveUSB Creator in:"
 
-!define MUI_ICON liveusb-creator.ico
-;!define MUI_UNICON liveusb-creator.ico
+!define MUI_ICON sugarstick-creator.ico
+;!define MUI_UNICON sugarstick-creator.ico
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-!define MUI_FINISHPAGE_RUN $INSTDIR\liveusb-creator.exe
+!define MUI_FINISHPAGE_RUN $INSTDIR\sugarstick-creator.exe
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -99,7 +99,7 @@ Section ""
 	vcredist_install_finished:
 	Delete "$INSTDIR\vcredist_x86.exe"
 
-	File liveusb-creator.exe
+	File sugarstick-creator.exe
 	File LICENSE.txt
 	File README.txt
 	File w9xpopen.exe
@@ -115,7 +115,7 @@ Section ""
 	; Create shortcut.
 	SetOutPath -
 	CreateDirectory "$SMPROGRAMS\LiveUSB Creator"
-	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\LiveUSB Creator.lnk" "$INSTDIR\liveusb-creator.exe"
+	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\LiveUSB Creator.lnk" "$INSTDIR\sugarstick-creator.exe"
 	CreateShortCut "$SMPROGRAMS\LiveUSB Creator\Uninstall LiveUSB Creator.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
 	; Create uninstaller.
@@ -142,7 +142,7 @@ Section Uninstall
 	DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\LiveUSB Creator"
 
 	; Delete files.
-	Delete "$INSTDIR\liveusb-creator.exe"
+	Delete "$INSTDIR\sugarstick-creator.exe"
 	Delete "$INSTDIR\LICENSE.txt"
 	Delete "$INSTDIR\README.txt"
 	Delete "$INSTDIR\w9xpopen.exe"
@@ -153,7 +153,7 @@ Section Uninstall
 	Delete "$INSTDIR\tools\dd.exe"
 	Delete "$INSTDIR\tools\syslinux.exe"
 
-	Delete "$INSTDIR\liveusb-creator.exe.log"
+	Delete "$INSTDIR\sugarstick-creator.exe.log"
 
 	; Remove the installation directories.
 	RMDir /R "$INSTDIR\locale"
